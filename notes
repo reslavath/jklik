@@ -1,18 +1,10 @@
-PostgreSQL Cluster consists of a master PostgreSQL server, two replication slaves. Writes are send to the master, and reads to the two slave servers by PgPool. 
+##uptime
+##databae_sizes and table_sizes
+##last_autovaccum https://github.com/heap/pg-autovacuum-diagnostics
+#monitor https://github.com/nilenso/postgresql-monitoring
+perf_tools https://github.com/virtuozzo/postgresql-perf-tools
+##bloatingOnTables/iNDEXES
 
-pgpool-II is a middleware that works between PostgreSQL servers and a PostgreSQL database client. 
-we used PgPool is mainly for 
-Connection Pooling
-Load Balancing
-Failover Handling
-
-When Pgpool detects the master server has failed, 
-it issues a repmgr command to promote one of the slave to be the next master.
-it also issues a follow command to the another slave to start streaming replication from new master. PgPool will start sending writes to new master and reads to slave.
-
-psql --host=VIP --username=app_user_name --password --port=9999
-
-repmgr is an open-source tool suite developed by 2ndQuadrant, for managing replication and failover in a cluster of PostgreSQL servers. It is used to set up standby servers, monitor replication, and perform administrative tasks such as failover or manual switchover operations.
 
 
 -bash-4.2$ cat test.sh
