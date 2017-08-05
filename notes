@@ -15,6 +15,24 @@ psql --host=VIP --username=app_user_name --password --port=9999
 repmgr is an open-source tool suite developed by 2ndQuadrant, for managing replication and failover in a cluster of PostgreSQL servers. It is used to set up standby servers, monitor replication, and perform administrative tasks such as failover or manual switchover operations.
 
 
+-bash-4.2$ cat test.sh
+#! /bin/bash
+
+TIMESTAMP=$(date +"%F")
+
+#mkdir -p "$BACKUP_DIR/mysql"
+END_OF_LINE=$(<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>)
+
+
+echo "database sizes " >> database_sizes.txt
+psql -c '\i /var/lib/pgsql/mnt_scripts/database_sizes.sql' >> database_sizes.txt
+echo $END_OF_LINE >>database_sizes.txt
+databases=`psql bench1 -c 'select datname from pg_database;' -t  | grep -Ev "(postgres|template1|template0)"`
+for db in $databases; do
+echo "top 20 tables in $db" >> tables_sizes_$TIMESTAMP.txt
+psql -c'\i /var/lib/pgsql/mnt_scripts/table_sizes.sql' --dbname=$db >> tables_sizes_$TIMESTAMP.txt
+done
+
 
 
 
