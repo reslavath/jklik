@@ -4,6 +4,7 @@
 #monitor https://github.com/nilenso/postgresql-monitoring
 perf_tools https://github.com/virtuozzo/postgresql-perf-tools
 ##bloatingOnTables/iNDEXES
+https://github.com/pgexperts/accidentalDBA/blob/master/tutorial/accidental_dba.pdf
 
 
 
