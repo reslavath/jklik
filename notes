@@ -3,15 +3,11 @@
 ##last_autovaccum https://github.com/heap/pg-autovacuum-diagnostics
 #monitor https://github.com/nilenso/postgresql-monitoring
 perf_tools https://github.com/virtuozzo/postgresql-perf-tools
+index_Stats https://github.com/pgexperts/pgx_scripts
 ##bloatingOnTables/iNDEXES
-https://github.com/pgexperts/accidentalDBA/blob/master/tutorial/accidental_dba.pdf
-http://thebuild.com/presentations/not-your-job-pgconf-us-2017.pdf
-http://thebuild.com/presentations/pgconfeu-2016-vax.pdf
 
-freeze
-http://hacksoclock.blogspot.sg/2017/03/change-autovacuumfreezemaxage-without.html
-
-
+arch
+http://raghavt.blogspot.sg/2011/04/postgresql-90-architecture.html
 
 
 -bash-4.2$ cat test.sh
