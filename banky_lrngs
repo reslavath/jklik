@@ -4,5 +4,7 @@ http://www.craigkerstiens.com/2012/10/01/understanding-postgres-performance/
 
 VACUUM
 http://www.interdb.jp/pg/pgsql06.html
+freeze
+http://www.databasesoup.com/2012/09/freezing-your-tuples-off-part-1.html
 MVCC
 https://devcenter.heroku.com/articles/postgresql-concurrency
