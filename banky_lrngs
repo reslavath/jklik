@@ -2,3 +2,7 @@
 Understanding your Cache and its Hit Rate and Index Usage
 http://www.craigkerstiens.com/2012/10/01/understanding-postgres-performance/
 
+VACUUM
+http://www.interdb.jp/pg/pgsql06.html
+MVCC
+https://devcenter.heroku.com/articles/postgresql-concurrency
