@@ -6,5 +6,17 @@ VACUUM
 http://www.interdb.jp/pg/pgsql06.html
 freeze
 http://www.databasesoup.com/2012/09/freezing-your-tuples-off-part-1.html
+how close you are to autovacuum freeze anywhere with this query ??
+select max(age(datfrozenxid)) from pg_database;
+
+"how close am I to forced autovacuum freeze on a large table?" 
+
+SELECT relname, age(relfrozenxid) as xid_age, 
+    pg_size_pretty(pg_table_size(oid)) as table_size
+FROM pg_class 
+WHERE relkind = 'r' and pg_table_size(oid) > 1073741824
+ORDER BY age(relfrozenxid) DESC LIMIT 20;
+
+
 MVCC
 https://devcenter.heroku.com/articles/postgresql-concurrency
