@@ -839,19 +839,8 @@ LEFT OUTER JOIN
     ON t.tablename = foo.ctablename
 WHERE t.schemaname='public'
 ORDER BY 1,2;
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $
-dbsup205@uklvadsql506[DEV][sql_files] $ cat overdue_for_aggressive_autovacuum.sql
+
+user@hostname[DEV][sql_files] $ cat overdue_for_aggressive_autovacuum.sql
 --Which tables are overdue for an aggressive vacuum to prevent xid wraparound?
 WITH tables AS (
   SELECT
