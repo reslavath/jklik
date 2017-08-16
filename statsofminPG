@@ -1,0 +1,195 @@
+#! /bin/bash
+
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+#LOG=/home/enterprisedb/rameshe/logs/pg_mon_scb_$TIMESTAMP.log
+LOG=/home/enterprisedb/rameshe/logs/pg_mon_scb.log
+
+#SQLFILES=/home/dbsup205/postgres_monitoring/sql_files
+
+echo "------------------------------------------------------------------------------------------" >> $LOG
+echo "PostgreSQL  healthchecks on Host:`hostname`" >> $LOG
+echo `date` >> $LOG
+echo "------------------------------------------------------------------------------------------" >> $LOG
+printf '\n'   >> $LOG
+
+echo "DATABASE BACKUP CHECKS"  >> $LOG
+printf '\n'   >> $LOG
+
+
+echo "BACKUP ID     BACKUP TIME              BACKUP SIZE"  >> $LOG
+/opt/PostgresPlus/PGPlus-9.5/edb-bart/bin/bart SHOW-BACKUPS | awk '{ print $2 " " $3 " " $4 " " $5 "  " $6 " " $7}'  | tail -4 >> $LOG
+
+echo "------------------------------------------------------------------------------------------" >> $LOG
+
+echo "Version checks" >> $LOG
+printf '\n'   >> $LOG
+
+#postgres server version
+        POSTGRES_VERSION=`/opt/PostgresPlus/PGPlus-9.5/9.5AS/bin/pg_config --version`
+        echo PostgreSQL Server version is $POSTGRES_VERSION >> $LOG
+#BART Version
+        BART_VERSION=`/opt/PostgresPlus/PGPlus-9.5/edb-bart/bin/bart --version`
+        echo BART version is $BART_VERSION >> $LOG
+
+#psql Version
+        PSQL_VERSION=`/opt/PostgresPlus/PGPlus-9.5/9.5AS/bin/psql --version`
+        echo psql version is $PSQL_VERSION >> $LOG
+
+echo "------------------------------------------------------------------------------------------" >> $LOG
+
+
+echo "Disk Space checks" >> $LOG
+printf '\n'   >> $LOG
+
+#disk_space_checks
+df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $1 }' | while read output;
+do
+         usep=$(echo $output | awk '{ print $1}' | cut -d'%' -f1  )
+         partition=$(echo $output | awk '{ print $2 }' )
+         if [ $usep -ge 70 ]; then
+                 echo "Running out of disk space \"$partition ($usep%)\" "   >> $LOG
+         fi
+done
+printf '\n'   >> $LOG
+echo "------------------------------------------------------------------------------------------" >> $LOG
+
+pg_ready=`pg_isready | awk '{print $3}' `
+        if [ "$pg_ready" == "accepting" ];
+        then
+
+                echo "PostgreSQL service and Config file stats" >>  $LOG
+                printf '\n'   >> $LOG
+                #LOG SCRAPPING STARTS HERE
+                PG_LOG_DIR=`psql postgres -c"show log_directory" -t`
+
+                if [[ $PG_LOG_DIR = " pg_log" ]]
+                        then
+                        temp_PG_LOG_DIR=`psql postgres -c'show data_directory' -t `
+                        PG_LOG_DIR=$temp_PG_LOG_DIR\/pg_log
+                        echo "my log_directory is $PG_LOG_DIR" > /dev/null 2>&1
+                else
+                        PG_LOG_DIR=$PG_LOG_DIR
+                fi
+
+                #last_modified_pgconf time of postgresql.conf
+                        PgConfig=`psql postgres -c"show config_file" -t`
+                        last_modified_pgconf=`stat $PgConfig | grep Modify |  awk '{print $2,$3}'`
+                        echo "PostgreSQL config was last modified at     $last_modified_pgconf" >> $LOG
+
+                #last_modified_hbaconf time of pg_hba.conf
+                hbaConfig=`psql postgres -c"show hba_file" -t`
+                last_modified_hbaconf=`stat $hbaConfig | grep Modify |  awk '{print $2,$3}'`
+                echo "PostgreSQL hba_conf was last modified at   $last_modified_hbaconf" >> $LOG
+
+                #postgresql_auto_conf check
+                PG_DATA_DIR=`psql postgres -c'show data_directory' -t `
+                PG_AUTOCONF=$PG_DATA_DIR\/postgresql.auto.conf
+                last_modified_auto_conf=`stat $PG_AUTOCONF | grep Modify |  awk '{print $2,$3}'`
+                echo "PostgreSQL auto.conf was last modified at  $last_modified_auto_conf" >> $LOG
+
+
+
+                reload_times=`psql postgres -c 'select pg_conf_load_time()' -t`
+                echo "PostgreSQL Conf was last reloaded at      $reload_times" >> $LOG
+
+                startup_time=`psql postgres -c 'select pg_postmaster_start_time()' -t`
+                up_time=`psql postgres -c 'SELECT now() - pg_postmaster_start_time()' -t`
+                echo PostgreSQL service was started at "       " $startup_time and UP  since $up_time >> $LOG
+
+
+                printf '\n'   >> $LOG
+                echo "------------------------------------------------------------------------------------------" >> $LOG
+
+                echo "PostgreSQL Configuration checks" >> $LOG
+                printf '\n'   >> $LOG
+
+                curr_wal_level_setting=`psql postgres  -c "show wal_level" -t`
+                if [ "$curr_wal_level_setting" == " minimal" ];
+                        then
+                        echo "PASS:     wal_level=$curr_wal_level_setting" >> $LOG
+                        else
+                        echo "FAIL:     wal_level= $curr_wal_level_setting, this should be minimal"  >> $LOG
+                fi
+
+
+                curr_archive_mode=`psql postgres  -c "show archive_mode" -t`
+                if [ "$curr_archive_mode" == " on" ];
+                 then
+                        echo "PASS:     archive_mode=$curr_archive_mode" >> $LOG
+                        else
+                        echo "FAIL:     current setting is archive_mode= $curr_archive_mode, this should be on"  >> $LOG
+                fi
+
+
+                curr_wal_sync_method=`psql postgres  -c "show wal_sync_method" -t`
+                if [ "$curr_wal_sync_method" = " fdatasync" ];
+                        then
+                        echo "PASS:     wal_sync_method=$curr_wal_sync_method" >> $LOG
+                        else
+                        echo "FAIL:     current setting is wal_sync_method=$curr_wal_sync_method this should be fdatasync"  >> $LOG
+                fi
+
+                curr_data_checksum=`psql postgres  -c "show data_checksums" -t`
+                if [ "$curr_data_checksum" == " on" ];
+                 then
+                        echo "PASS:     data_checksums=$curr_data_checksum" >> $LOG
+                        else
+                        echo "FAIL:     current setting is data_checksums = $curr_data_checksum, this should be on"  >> $LOG
+                fi
+
+
+                curr_sync_comm=`psql postgres  -c "show synchronous_commit" -t`
+                if [ "$curr_sync_comm" = " on" ];
+                        then
+                        echo "PASS:     synchronous_commit=$curr_sync_comm" >> $LOG
+                        else
+                        echo "FAIL:     current setting is $curr_sync_comm this should be on"  >> $LOG
+                fi
+
+                curr_fsync=`psql postgres  -c "show fsync" -t`
+                if [ "$curr_fsync" == " on" ];
+                 then
+                        echo "PASS:     fsync=$curr_fsync" >> $LOG
+                        else
+                        echo "FAIL:     current setting is fsync= $curr_fsync, this should be on"  >> $LOG
+                fi
+
+
+                curr_autovacuum=`psql postgres  -c "show autovacuum" -t`
+                if [ "$curr_autovacuum" == " on" ];
+                 then
+                        echo "PASS:     autovacuum=$curr_autovacuum" >> $LOG
+                        else
+                        echo "FAIL:     current setting is  autovacuum=$curr_autovacuum this should be on"  >> $LOG
+                fi
+                echo "------------------------------------------------------------------------------------------" >> $LOG
+
+                echo "Which tables are overdue for an aggressive vacuum to prevent XID Wraparound?" >> $LOG
+                databases=`psql  -c 'select datname from pg_database;' -t  | grep -Ev "(template1|template0)"`
+
+                printf '\n'   >> $LOG
+                auto_temp_log=/tmp/auto_temp_log.log
+                auto_temp_result=/tmp/auto_temp_result.log
+
+                for db in $databases; do
+                        echo " AUTOVACUUM STATS FOR DATABASE $db "  >>  $auto_temp_log
+                        psql -q -c "WITH tables AS (   SELECT    c.relname,    GREATEST(age(c.relfrozenxid), age(t.relfrozenxid)) AS age  FROM pg_class AS c    LEFT JOIN pg_class AS t ON c.reltoastrelid = t.oid  WHERE c.relkind IN ('r', 'm') ) SELECT * FROM tables WHERE age >= current_setting('autovacuum_freeze_max_age')::INTEGER ORDER BY age DESC"  --dbname=$db >>  $auto_temp_result
+                        auto_temp_rows=`grep rows  $auto_temp_result`
+                        if [ "$auto_temp_rows" = "(0 rows)" ] ;
+                        then
+                                echo "No Aggressive Vacuum required for tables in database $db " >> $LOG
+                        else
+                                cat  $auto_temp_log  >> $LOG
+                                cat $auto_temp_result >> $LOG
+                        fi
+                        rm -rf $auto_temp_log
+                        rm -rf $auto_temp_result
+
+                done
+                echo "------------------------------------------------------------------------------------------" >> $LOG
+                echo "------------------------------------------------------------------------------------------" >> $LOG
+        else
+        echo "PostgresSQL Service is Down"
+        fi
+exit
+
