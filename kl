@@ -1,0 +1,11 @@
+postmaster is also known as supervisor proceess
+it also works as a listener 
+who runs on IP nad port... and listens to client requests
+
+receives the request ftom the leint 
+
+will span new postgres process on the server side also known as user (backend process),, postmaster also assign proper workmem to the new process
+
+once done, proper authentication and authorisation will happen at the backside
+once done, this process is assigned to the user..
+
