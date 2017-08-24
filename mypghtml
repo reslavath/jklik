@@ -1,0 +1,219 @@
+#!/bin/sh
+out=/tmp/diskstas_chartreuse.log
+
+
+echo "<!DOCTYPE html>" >> $out
+
+
+cat /tmp/CorpHead >> $out
+
+echo "<h1>Configuration Checks</h1>" >> $out
+
+pg_ready=`pg_isready | awk '{print $3}' `
+        if [ "$pg_ready" == "accepting" ];
+        then
+
+                        curr_wal_sync_method=`psql postgres  -c "show wal_sync_method" -t`
+                        curr_sync_comm=`psql postgres  -c "show synchronous_commit" -t`
+                        curr_fsync=`psql postgres  -c "show fsync" -t`
+                        curr_autovacuum=`psql postgres  -c "show autovacuum" -t`
+                        curr_wal_level_setting=`psql postgres  -c "show wal_level" -t`
+                        curr_data_checksum=`psql postgres  -c "show data_checksums" -t`
+                        curr_archive_mode=`psql postgres  -c "show archive_mode" -t`
+
+                        echo "<style>table, th, td {     border: 1px solid black;    border-collapse: collapse;} th, td {    padding: 5px;} th {     text-align: left;}</style>" >> $out
+
+                        echo "<table style="width:100%">" >> $out
+
+
+                        echo "   <tr><th>CONFIG </th><th style='background-color:lightblue;'>wal_sync_method</th><th style='background-color:lightblue;'>synchronous_commit</th><th style='background-color:lightblue;'>fsync</th><th style='background-color:lightblue;'>autovacuum</th><th style='background-color:lightblue;'>wal_level</th><th style='background-color:lightblue;'>archive_mode</th><th style='background-color:lightblue;'>data_checksums</th></tr> " >> $out
+                        echo "   <tr><td>Expected Value</td><td>fdatasync</td><td>on</td><td>on</td><td>on</td><td>archive</td><td>on</td><td>on</td></tr> " >> $out
+
+
+                        echo "    <td>Actual Value</td> " >> $out
+                        #echo "    <td>`echo $curr_wal_sync_method`</td>" >> $out
+                                                if [ "$curr_wal_sync_method" = " fdatasync" ]; then
+                                                        echo "    <td style='background-color:chartreuse;'>`echo $curr_wal_sync_method`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_wal_sync_method`</td>" >> $out
+                                                fi
+                        #echo "    <td>`echo $curr_sync_comm`</td>" >> $out
+                                                if [ "$curr_sync_comm" = " on" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_sync_comm`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_sync_comm`</td>" >> $out
+                                                fi
+                        #echo "    <td>`echo $curr_fsync`</td>" >> $out
+                                                if [ "$curr_fsync" = " on" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_fsync`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_fsync`</td>" >> $out
+                                                fi
+                                                #echo "    <td>`echo $curr_autovacuum`</td>" >> $out
+                                                if [ "$curr_autovacuum" = " on" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_autovacuum`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_autovacuum`</td>" >> $out
+                                                 fi
+                        #echo "  <td>`echo $curr_wal_level_setting`</td>" >> $out
+                                                if [ "$curr_wal_level_setting" = " archive" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_wal_level_setting`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_wal_level_setting`</td>" >> $out
+                                                fi
+                        #echo "  <td>`echo $curr_archive_mode`</td>" >> $out
+                                                if [ "$curr_archive_mode" = " on" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_archive_mode`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_archive_mode`</td>" >> $out
+                                                fi
+                                                #echo "  <td>`echo $curr_data_checksum`</td>" >> $out
+                                                if [ "$curr_data_checksum" = " on" ]; then
+                                                        echo "    <td  style='background-color:chartreuse;'>`echo $curr_data_checksum`</td>" >> $out
+                                                else
+                                                        echo  "<td style='background-color:red;'>`echo $curr_data_checksum`</td>" >> $out
+                                                fi
+                        echo "  </tr>" >> $out
+                        echo "</table>" >> $out
+                        echo "</body>" >> $out
+
+
+
+##VERSION CHECK STATS
+
+echo "<h1 >Version Checks</h1>"  >> $out
+
+#postgres server version
+POSTGRES_rpm_VERSION=`sudo rpm -qa  | grep -i SCBPGEDBCLUSTER`
+POSTGRES_bin_VERSION=`/opt/PostgresPlus/PGPlus-9.5/9.5AS/bin/pg_config --version`
+#BART Version
+BART_bin_VERSION=`/opt/PostgresPlus/PGPlus-9.5/edb-bart/bin/bart --version`
+#psql Version
+PSQL_bin_VERSION=`/opt/PostgresPlus/PGPlus-9.5/9.5AS/bin/psql --version`
+CLIP_rpm_version=`sudo rpm -qa | grep -i clip | sort -n | tail -1`
+
+echo "<head><style>table, th, td {     border: 1px solid black;    border-collapse: collapse;} th, td {    padding: 5px;} th {     text-align: left;}</style></head>" >> $out
+
+echo ""  >> $out
+echo "<table style='width:100%'>"   >> $out
+#echo "  <tr><th></th><th>CLUSTER</th><th>PSQL</th><th>BART</th><th>CLIP</th></tr>"  >> $out
+echo "  <tr><th></th><th style='background-color:lightblue;'>CLUSTER</th><th style='background-color:lightblue;'>PSQL</th><th style='background-color:lightblue;'>BART</th><th style='background-color:lightblue;'>CLIP</th></tr>"  >> $out
+echo "  <tr><td>RPM Version</td><td>`echo $POSTGRES_rpm_VERSION`</td><td>NA</td><td>NA</td><td>`echo $CLIP_rpm_version`</td></tr>"  >> $out
+echo "  <tr><td>Binary Version</td><td>`echo $POSTGRES_rpm_VERSION`</td><td>` echo $PSQL_bin_VERSION`</td><td>`echo $BART_bin_VERSION`</td><td>NA</td></tr>"  >> $out
+echo "</table>"  >> $out
+
+
+
+
+###DISK SPACE STATS
+echo "<h1>Disk Usage Checks</h1>" >> $out
+
+backup_diskspace=`df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $6 }'  | grep backup`
+usep=$(echo $backup_diskspace | awk '{ print $1}' | cut -d'%' -f1)
+backup_diskspace_out=$( if [ $usep -lt 50 ]
+                        then
+                                echo  "<td style='background-color:chartreuse;'>`echo $usep%`</td>"
+                        elif (( $usep > 50 && $usep < 80));
+                        then
+                                echo  "<td style='background-color:yellow;'>`echo $usep%`</td>"
+                        elif [$usep -ge 80 ]
+                        then
+                                echo  "<td style='background-color:red;'>`echo $usep%`</td>"
+                        fi )
+
+echo $backup_diskspace_out
+
+data_diskspace=`df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $6 }'  | grep data`
+usep=$(echo $data_diskspace | awk '{ print $1}' | cut -d'%' -f1)
+data_diskspace_out=$( if [ $usep -lt 50 ]
+                        then
+                                echo  "<td style='background-color:chartreuse;'>`echo $usep%`</td>"
+                        elif (( $usep > 50 && $usep < 80));
+                        then
+                                echo  "<td style='background-color:yellow;'>`echo $usep%`</td>"
+                        elif [$usep -ge 80 ]
+                        then
+                                echo  "<td style='background-color:red;'>`echo $usep%`</td>"
+                        fi )
+
+echo $data_diskspace_out
+
+xlog_diskspace=`df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $6 }'  | grep xlog`
+usep=$(echo $xlog_diskspace | awk '{ print $1}' | cut -d'%' -f1)
+xlog_diskspace_out=$( if [ $usep -lt 50 ]
+                        then
+                                echo  "<td style='background-color:chartreuse;'>`echo $usep%`</td>"
+                        elif (( $usep > 50 && $usep < 80));
+                        then
+                                echo  "<td style='background-color:yellow;'>`echo $usep%`</td>"
+                        elif [$usep -ge 80 ]
+                        then
+                                echo  "<td style='background-color:red;'>`echo $usep%`</td>"
+                        fi )
+
+echo $xlog_diskspace_out
+
+
+tmp_diskspace=`df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $6 }'  | grep tmp`
+usep=$(echo $tmp_diskspace | awk '{ print $1}' | cut -d'%' -f1)
+tmp_diskspace_out=$( if [ $usep -lt 50 ]
+                        then
+                                echo  "<td style='background-color:chartreuse;'>`echo $usep%`</td>"
+                        elif (( $usep > 50 && $usep < 80));
+                        then
+                                echo  "<td style='background-color:yellow;'>`echo $usep%`</td>"
+                        elif [$usep -ge 80 ]
+                        then
+                                echo  "<td style='background-color:red;'>`echo $usep%`</td>"
+                        fi )
+
+echo $tmp_diskspace_out
+
+
+tmp_diskspace=`df -H | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $1 }'  | grep rootvol`
+usep=$(echo $tmp_diskspace | awk '{ print $1}' | cut -d'%' -f1)
+root_diskspace_out=$( if [ $usep -lt 50 ]
+                        then
+                                echo  "<td style='background-color:chartreuse;'>`echo $usep%`</td>"
+                        elif (( $usep > 50 && $usep < 80));
+                        then
+                                echo  "<td style='background-color:yellow;'>`echo $usep%`</td>"
+                        elif [$usep -ge 80 ]
+                        then
+                                echo  "<td style='background-color:red;'>`echo $usep%`</td>"
+                        fi )
+
+echo $root_diskspace_out
+
+
+
+
+
+echo "<body>" >> $out
+echo "<head><style>table, th, td {     border: 1px solid black;    border-collapse: collapse;} th, td {    padding: 5px;} th {     text-align: left;}</style></head>" >> $out
+
+
+
+echo "<table style='width:100%'>"   >> $out
+#echo "  <tr><th>FILESYSTEM</th><th>DATA</th><th>PG_XLOG</th><th>BACKUP</th><th>tmp</th><th>root</th></tr>"  >> $out
+echo "  <tr><th>FILESYSTEM</th><th style='background-color:lightblue;'>DATA</th><th style='background-color:lightblue;'>PG_XLOG</th><th style='background-color:lightblue;'>BACKUP</th><th style='background-color:lightblue;'>tmp</th><th style='background-color:lightblue;'>root</th></tr>"  >> $out
+echo "  <tr><td>USED %</td>`echo $data_diskspace_out``echo $xlog_diskspace_out``echo $backup_diskspace_out``echo $tmp_diskspace_out``echo $root_diskspace_out`</tr>"  >> $out
+echo "</table>"  >> $out
+echo "</body>"  >> $out
+echo "</html>"  >> $out
+
+                        echo "</html>" >> $out
+ else
+        echo "PostgresSQL Service is Down" >> $out
+        fi
+#To:rameshnaik.eslavath@sc.com  MIME-Version: 1.0 Subject:PostgreSQL_dashboard Content-Type: text/html cat $out | sendmail -t
+(
+echo "To: rameshnaik.eslavath@sc.com"
+echo "MIME-Version: 1.0"
+echo "Subject: PostgreSQL stats on  `hostname` `date` "
+echo "Content-Type: text/html"
+cat $out
+) | sendmail -t
+
+
+exit
