@@ -286,7 +286,7 @@ echo "<h1>PostgreSQL service and Config files stats</h1>" >> $out
 
         fi
 
-#To:rameshnaik.eslavath@sc.com  MIME-Version: 1.0 Subject:PostgreSQL_dashboard Content-Type: text/html cat $out | sendmail -t
+#mail stuff
 (
 echo "To: lkjkljj@gmail.com"
 echo "MIME-Version: 1.0"
