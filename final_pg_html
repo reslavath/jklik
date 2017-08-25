@@ -1,7 +1,7 @@
 #!/bin/sh
 
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-out=/home/enterprisedb/rameshe_scripts/dashboard_stats_$TIMESTAMP.log
+out=lkjlkjlkj_$TIMESTAMP.log
 
 echo "<!DOCTYPE html>" >> $out
 
@@ -288,7 +288,7 @@ echo "<h1>PostgreSQL service and Config files stats</h1>" >> $out
 
 #To:rameshnaik.eslavath@sc.com  MIME-Version: 1.0 Subject:PostgreSQL_dashboard Content-Type: text/html cat $out | sendmail -t
 (
-echo "To: rameshnaik.eslavath@sc.com"
+echo "To: lkjkljj@gmail.com"
 echo "MIME-Version: 1.0"
 echo "Subject: PostgreSQL stats on  `hostname` `date` "
 echo "Content-Type: text/html"
