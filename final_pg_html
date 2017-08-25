@@ -6,7 +6,7 @@ out=lkjlkjlkj_$TIMESTAMP.log
 echo "<!DOCTYPE html>" >> $out
 
 
-cat /home/enterprisedb/rameshe_scripts/CorpHead >> $out
+cat CorpHead >> $out
 #echo "<h1>Configuration Checks</h1>" >> $out
 
 pg_ready=`pg_isready | awk '{print $3}' `
