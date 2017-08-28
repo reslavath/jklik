@@ -9,3 +9,4 @@ will span new postgres process on the server side also known as user (backend pr
 once done, proper authentication and authorisation will happen at the backside
 once done, this process is assigned to the user..
 
+http://www.vertabelo.com/blog/technical-articles/dirty-postgresql-database-clean-it-up-with-a-vacuum
