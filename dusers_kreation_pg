@@ -1,0 +1,40 @@
+•	As per the standards, we are creating database aabbccdd
+•	We are creating a schema with the same name as the database owner(abc_owner).
+•	All the users(abc_owner, abc_readonly, abc_app, abc_support)  can directly query tables in  aabbccdd  database, no changes required in their code while connecting to the database.
+•	Below are the brief steps. Thoroughly tested
+
+1.	CREATE the requested users.
+a.	psql --dbname=postgres -c "CREATE USER abc_owner WITH PASSWORD 'R@w1#4vK';"
+b.	psql --dbname=postgres -c "CREATE USER abc_readonly WITH NOSUPERUSER ENCRYPTED PASSWORD 'R&m@#6gK';"
+c.	psql --dbname=postgres -c "CREATE USER abc_app WITH NOSUPERUSER ENCRYPTED PASSWORD 'R#a5n2iK';"
+d.	psql --dbname=postgres -c "CREATE USER abc_support WITH NOSUPERUSER ENCRYPTED PASSWORD 'R#a5n6iK';"
+
+2.	CREATE the app database and schema
+a.	psql --dbname=postgres -c "CREATE DATABASE aabbccdd OWNER abc_owner;"
+b.	psql --dbname=aabbccdd -c "CREATE SCHEMA abc_owner AUTHORIZATION abc_owner;"
+
+3.	Set the search_path for all the above created users
+a.	psql --dbname=postgres -c 'ALTER ROLE abc_app IN DATABASE aabbccdd SET search_path TO abc_owner,"$user",public;'
+b.	psql --dbname=postgres -c 'ALTER ROLE abc_readonly IN DATABASE aabbccdd SET search_path TO abc_owner,"$user",public;'
+c.	psql --dbname=postgres -c 'ALTER ROLE abc_support IN DATABASE aabbccdd SET search_path TO abc_owner,"$user",public;'
+
+4.	GRANT the privileges to users as requested by connecting to app database as below
+$ psql --host=<host_name> --username=abc_owner --dbname=aabbccdd -w
+
+#for user  abc_readonly
+a.	GRANT CONNECT ON DATABASE aabbccdd TO abc_readonly;
+b.	GRANT USAGE ON  SCHEMA abc_owner TO abc_readonly;
+c.	GRANT SELECT ON  ALL TABLES IN SCHEMA abc_owner TO abc_readonly;
+d.	ALTER DEFAULT PRIVILEGES IN SCHEMA abc_owner GRANT SELECT ON TABLES TO abc_readonly;
+
+#for user  abc_app
+e.	GRANT CONNECT ON DATABASE aabbccdd  TO abc_app;
+f.	GRANT USAGE ON  SCHEMA abc_owner TO abc_app;
+g.	GRANT SELECT,INSERT,UPDATE,DELETE ON  ALL TABLES IN SCHEMA abc_owner TO abc_app;
+h.	ALTER DEFAULT PRIVILEGES IN SCHEMA abc_owner GRANT SELECT,INSERT,UPDATE,DELETE ON TABLES TO abc_app;
+
+#for user  abc_support
+i.	GRANT CONNECT ON DATABASE aabbccdd  TO abc_support;
+j.	GRANT USAGE ON  SCHEMA abc_owner TO abc_support;
+k.	GRANT SELECT ON  ALL TABLES IN SCHEMA abc_owner TO abc_support;
+l.	ALTER DEFAULT PRIVILEGES IN SCHEMA abc_owner GRANT SELECT ON TABLES TO abc_support;
