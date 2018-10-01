@@ -1,0 +1,73 @@
+#!/bin/bash
+
+DC=$(echo `hostname` | cut -c1-2)
+DIR=/postgres/backup/certs
+CN_NAME=$(nslookup `hostname` | grep Name | cut -c7-)
+DATE=`date +%d-%m-%y-%H%M`
+log=$DIR/sha2migration_$DATE.log
+IPADDRESS=$(echo "`hostname -I`" | awk '{print $1}')
+mkdir -p $DIR 
+cd $DIR
+
+mv -f server.key server.key_$DATE
+mv -f server.csr server.csr_$DATE
+
+
+if [ "$DC" = "HK" ] || [ "$DC" = "hk" ] ; then 
+	echo "my DC is $DC" >> $log 2>&1
+	echo "generating public key"    >> $log 2>&1
+        openssl genrsa -out server.key 2048  >> $log 2>&1
+        echo -e "generating CSR"    >> $log 2>&1
+        openssl req -new -key server.key -out server.csr -sha256 -subj "/C=HK/ST=Hong Kong/L=Hong Kong/O=RAMESH BANK /OU=IT/CN=$CN_NAME" >> $log 2>&1
+        echo -e "verifying CSR" >> $log 2>&1
+        openssl req -in server.csr -text -noout >> $log 2>&1
+	
+elif	[ "$DC" = "UK" ] || [ "$DC" = "uk" ] ; then
+        echo "my DC is $DC"  >> $log 2>&1
+	echo "generating public key"	>> $log 2>&1
+	openssl genrsa -out server.key 2048  >> $log 2>&1
+        echo "generating CSR"    >> $log 2>&1
+	openssl req -new -key server.key -out server.csr -sha256 -subj "/C=GB/ST=London/L=London/O=RAMESH BANK /OU=IT/CN=$CN_NAME/emailAddress=xx-xx-xx-xx@exchange.rameshbabu.com" >> $log 2>&1
+	echo "verifying CSR" >> $log 2>&1
+	openssl req -in server.csr -text -noout >> $log 2>&1
+
+fi
+
+if [ "$IPADDRESS" = "192.198.39.1" ] ; then 
+	DCS=DC180311252636
+	cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.198.38.254" ] ; then
+	DCS=DC180311252637	
+	cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.57" ] ; then
+        DCS=DC180417253025
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.192.22.112" ] ; then
+        DCS=DC180425253103
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.192.22.113" ] ; then
+        DCS=DC180425253104
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.53" ] ; then
+        DCS=DC180501253155
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.54" ] ; then
+        DCS=DC180501253156
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.50" ] ; then
+        DCS=DC180606253570
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.79" ] ; then
+        DCS=DC180629253774
+        cp server.csr "$CN_NAME"_"$DCS".csr
+elif  [ "$IPADDRESS" = "192.48.167.69" ] ; then
+        DCS=DC180801254098
+        cp server.csr "$CN_NAME"_"$DCS".csr
+fi
+
+echo
+echo -e "PLEASE SHARE /postgres/backup/certs/"$CN_NAME"_"$DCS".csr  WITH STS TEAM FOR OBTAINING CERTIFICATES"
+echo
+
+exit
+
